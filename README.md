@@ -63,7 +63,9 @@ Current features:
 - `Export Current Project Log` Blueprint/editor utility
 - `Tools -> Export Current Project Log` menu entry
 - Main Level Editor toolbar dropdown: `QuikkTools`
-- `QuikkTools -> Export Current Project Log` toolbar menu entry
+- Custom `QuikkTools` toolbar icon for quick recognition
+- Grouped toolbar sections for `Logs`, `Diagnostics`, and `Utilities`
+- `QuikkTools -> Logs -> Export Current Project Log` toolbar menu entry
 - `QuikkTools.ExportCurrentProjectLog` console command
 
 This exports the current project log into the host project's `Exports` folder using the naming pattern:
