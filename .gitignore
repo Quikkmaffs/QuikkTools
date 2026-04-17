@@ -1,0 +1,27 @@
+# Unreal generated plugin build output
+Binaries/
+Intermediate/
+DerivedDataCache/
+Saved/
+
+# IDE files
+.vs/
+.idea/
+*.VC.db
+*.VC.opendb
+
+# Build and packaging artifacts
+*.pdb
+*.obj
+*.lib
+*.exp
+*.dll
+*.so
+*.dylib
+*.app
+*.ipa
+*.apk
+
+# Local OS noise
+.DS_Store
+Thumbs.db

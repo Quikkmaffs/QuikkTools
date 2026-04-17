@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "QuikkTools",
+	"Description": "Reusable runtime and editor utilities for Unreal Engine projects, including file access helpers and project log export tools.",
+	"Category": "Scripting",
+	"CreatedBy": "QuikkTools Contributors",
+	"CreatedByURL": "https://github.com/Quikkmaffs",
+	"DocsURL": "https://github.com/Quikkmaffs/QuikkTools",
+	"MarketplaceURL": "",
+	"SupportURL": "https://github.com/Quikkmaffs/QuikkTools/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": true,
+	"Modules": [
+		{
+			"Name": "QuikkToolsRuntime",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "QuikkToolsEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	]
+}
