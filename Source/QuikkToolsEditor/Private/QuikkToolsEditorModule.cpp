@@ -2,15 +2,18 @@
 
 #include "Brushes/SlateImageBrush.h"
 #include "Framework/Notifications/NotificationManager.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "HAL/IConsoleManager.h"
 #include "HAL/PlatformProcess.h"
 #include "Interfaces/IPluginManager.h"
+#include "LevelEditor.h"
 #include "Misc/Paths.h"
 #include "Modules/ModuleManager.h"
 #include "Styling/AppStyle.h"
 #include "Styling/SlateStyle.h"
 #include "Styling/SlateStyleRegistry.h"
 #include "ToolMenus.h"
+#include "Widgets/SNullWidget.h"
 #include "Widgets/Notifications/SNotificationList.h"
 
 class FQuikkToolsEditorModule : public IModuleInterface
@@ -19,6 +22,7 @@ public:
 	virtual void StartupModule() override
 	{
 		RegisterStyle();
+		PluginCommands = MakeShared<FUICommandList>();
 
 		ExportCommand = IConsoleManager::Get().RegisterConsoleCommand(
 			TEXT("QuikkTools.ExportCurrentProjectLog"),
@@ -30,6 +34,16 @@ public:
 		UToolMenus::RegisterStartupCallback(
 			FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FQuikkToolsEditorModule::RegisterMenus)
 		);
+
+		FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
+		ToolbarExtender = MakeShared<FExtender>();
+		ToolbarExtender->AddToolBarExtension(
+			TEXT("Play"),
+			EExtensionHook::After,
+			PluginCommands,
+			FToolBarExtensionDelegate::CreateRaw(this, &FQuikkToolsEditorModule::AddToolbarExtension)
+		);
+		LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(ToolbarExtender);
 	}
 
 	virtual void ShutdownModule() override
@@ -47,6 +61,8 @@ public:
 	}
 
 private:
+	static constexpr const TCHAR* ToolbarOptionsMenuName = TEXT("QuikkTools.ToolbarOptions");
+
 	void RegisterStyle()
 	{
 		if (StyleSet.IsValid())
@@ -61,14 +77,14 @@ private:
 		}
 
 		const TSharedRef<FSlateStyleSet> NewStyleSet = MakeShared<FSlateStyleSet>(TEXT("QuikkToolsStyle"));
-		NewStyleSet->SetContentRoot(FPaths::Combine(Plugin->GetBaseDir(), TEXT("Resources")));
+		NewStyleSet->SetContentRoot(Plugin->GetBaseDir());
 		NewStyleSet->Set(
 			TEXT("QuikkTools.ToolbarIcon"),
-			new FSlateVectorImageBrush(NewStyleSet->RootToContentDir(TEXT("QuikkToolsIcon"), TEXT(".svg")), FVector2D(20.0f, 20.0f))
+			new FSlateImageBrush(NewStyleSet->RootToContentDir(TEXT("quikkanchor-app-icon"), TEXT(".png")), FVector2D(20.0f, 20.0f))
 		);
 		NewStyleSet->Set(
 			TEXT("QuikkTools.MenuIcon"),
-			new FSlateVectorImageBrush(NewStyleSet->RootToContentDir(TEXT("QuikkToolsIcon"), TEXT(".svg")), FVector2D(16.0f, 16.0f))
+			new FSlateImageBrush(NewStyleSet->RootToContentDir(TEXT("quikkanchor-app-icon"), TEXT(".png")), FVector2D(16.0f, 16.0f))
 		);
 
 		FSlateStyleRegistry::RegisterSlateStyle(*NewStyleSet);
@@ -141,7 +157,7 @@ private:
 		);
 	}
 
-	void BuildToolbarDropdownMenu(UToolMenu* InMenu)
+	void PopulateToolbarDropdownMenu(UToolMenu* InMenu)
 	{
 		const FToolUIActionChoice ExportAction(FExecuteAction::CreateRaw(this, &FQuikkToolsEditorModule::RunExport));
 
@@ -168,6 +184,29 @@ private:
 		);
 	}
 
+	TSharedRef<SWidget> CreateToolbarEntryMenu()
+	{
+		if (UToolMenus::TryGet() == nullptr)
+		{
+			return SNullWidget::NullWidget;
+		}
+
+		return UToolMenus::Get()->GenerateWidget(ToolbarOptionsMenuName, FToolMenuContext());
+	}
+
+	void AddToolbarExtension(FToolBarBuilder& Builder)
+	{
+		Builder.SetLabelVisibility(EVisibility::All);
+		Builder.AddComboButton(
+			FUIAction(),
+			FOnGetContent::CreateRaw(this, &FQuikkToolsEditorModule::CreateToolbarEntryMenu),
+			FText::FromString(TEXT("QuikkTools")),
+			FText::FromString(TEXT("Open QuikkTools to access logs, diagnostics, and utilities.")),
+			GetQuikkToolsToolbarIcon(),
+			false
+		);
+	}
+
 	void RegisterMenus()
 	{
 		FToolMenuOwnerScoped OwnerScoped(this);
@@ -177,19 +216,17 @@ private:
 		FToolMenuSection& Section = ToolsMenu->FindOrAddSection(TEXT("QuikkTools"));
 		AddExportLogMenuEntry(Section, ExportAction);
 
-		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu(TEXT("LevelEditor.LevelEditorToolBar"));
-		FToolMenuSection& ToolbarSection = ToolbarMenu->FindOrAddSection(TEXT("QuikkTools"));
-		ToolbarSection.InsertPosition = FToolMenuInsert(TEXT("Play"), EToolMenuInsertType::After);
-		FToolMenuEntry ToolbarEntry = FToolMenuEntry::InitComboButton(
-			TEXT("QuikkTools.ToolbarMenu"),
-			FToolUIActionChoice(),
-			FNewToolMenuChoice(FNewToolMenuDelegate::CreateRaw(this, &FQuikkToolsEditorModule::BuildToolbarDropdownMenu)),
-			FText::FromString(TEXT("QuikkTools")),
-			FText::FromString(TEXT("Open QuikkTools to access logs, diagnostics, and utilities.")),
-			GetQuikkToolsToolbarIcon()
-		);
-		ToolbarEntry.StyleNameOverride = TEXT("CalloutToolbar");
-		ToolbarSection.AddEntry(ToolbarEntry);
+		UToolMenu* ToolbarOptionsMenu = nullptr;
+		if (UToolMenus::Get()->IsMenuRegistered(ToolbarOptionsMenuName))
+		{
+			ToolbarOptionsMenu = UToolMenus::Get()->ExtendMenu(ToolbarOptionsMenuName);
+		}
+		else
+		{
+			ToolbarOptionsMenu = UToolMenus::Get()->RegisterMenu(ToolbarOptionsMenuName);
+		}
+
+		PopulateToolbarDropdownMenu(ToolbarOptionsMenu);
 	}
 
 	void RunExport()
@@ -220,7 +257,9 @@ private:
 	}
 
 	IConsoleObject* ExportCommand = nullptr;
+	TSharedPtr<FUICommandList> PluginCommands;
 	TSharedPtr<FSlateStyleSet> StyleSet;
+	TSharedPtr<FExtender> ToolbarExtender;
 };
 
 IMPLEMENT_MODULE(FQuikkToolsEditorModule, QuikkToolsEditor)

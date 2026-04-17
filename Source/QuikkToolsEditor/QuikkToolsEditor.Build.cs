@@ -21,6 +21,7 @@ public class QuikkToolsEditor : ModuleRules
             new[]
             {
                 "Json",
+                "LevelEditor",
                 "Projects",
                 "Slate",
                 "SlateCore",

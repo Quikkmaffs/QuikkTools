@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "0.1.0",
+	"Version": 2,
+	"VersionName": "0.2.0",
 	"FriendlyName": "QuikkTools",
 	"Description": "Reusable runtime and editor utilities for Unreal Engine projects, including file access helpers and project log export tools.",
 	"Category": "Scripting",
