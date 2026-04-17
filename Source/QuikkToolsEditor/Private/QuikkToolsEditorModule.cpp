@@ -54,13 +54,14 @@ private:
 			ExportAction
 		);
 
-		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu(TEXT("LevelEditor.LevelEditorToolBar.SettingsToolbar"));
+		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu(TEXT("LevelEditor.LevelEditorToolBar"));
 		FToolMenuSection& ToolbarSection = ToolbarMenu->FindOrAddSection(TEXT("QuikkTools"));
+		ToolbarSection.InsertPosition = FToolMenuInsert(TEXT("Play"), EToolMenuInsertType::After);
 		FToolMenuEntry ToolbarEntry = FToolMenuEntry::InitToolBarButton(
 			TEXT("QuikkTools.ExportCurrentProjectLog"),
 			ExportAction,
-			FText::FromString(TEXT("Export Log")),
-			FText::FromString(TEXT("Copy the current project log into the project's Exports folder.")),
+			FText::FromString(TEXT("Export Project Log")),
+			FText::FromString(TEXT("Export the current project log into the project's Exports folder.")),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), TEXT("Icons.Save"))
 		);
 		ToolbarEntry.StyleNameOverride = TEXT("CalloutToolbar");
