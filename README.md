@@ -16,11 +16,9 @@ Current library:
 
 Current nodes:
 
-- `Build File Path From Folder`
-- `Test File Access`
-- `Test File Access In Folder`
+- `Resolve File Path`
 
-These nodes are meant for path validation and file-access diagnostics before debugging higher-level systems such as media playback, parsing, or asset loading.
+This node is meant for path validation and file-access diagnostics before debugging higher-level systems such as media playback, parsing, or asset loading.
 
 Typical use case:
 
@@ -40,6 +38,7 @@ Returned diagnostics include:
 
 - `Full Path`
 - `Exists`
+- `Accessible`
 - `File Size`
 - `Can Open Read`
 - `Can Read Bytes`

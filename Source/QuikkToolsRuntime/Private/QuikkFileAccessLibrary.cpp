@@ -17,53 +17,54 @@ FString UQuikkFileAccessLibrary::BuildFilePathFromFolder(const FString& BaseFold
 
 bool UQuikkFileAccessLibrary::TestFileAccess(
 	const FString& FullPath,
-	bool& bExists,
+	bool& Exists,
 	int64& FileSize,
-	bool& bCanOpenRead,
-	bool& bCanReadBytes,
+	bool& CanOpenRead,
+	bool& CanReadBytes,
 	FString& Diagnostic)
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-	bExists = PlatformFile.FileExists(*FullPath);
-	FileSize = bExists ? PlatformFile.FileSize(*FullPath) : INDEX_NONE;
-	bCanOpenRead = false;
-	bCanReadBytes = false;
+	Exists = PlatformFile.FileExists(*FullPath);
+	FileSize = Exists ? PlatformFile.FileSize(*FullPath) : INDEX_NONE;
+	CanOpenRead = false;
+	CanReadBytes = false;
 
-	if (bExists)
+	if (Exists)
 	{
 		TUniquePtr<IFileHandle> FileHandle(PlatformFile.OpenRead(*FullPath));
-		bCanOpenRead = FileHandle.IsValid();
+		CanOpenRead = FileHandle.IsValid();
 
-		if (bCanOpenRead)
+		if (CanOpenRead)
 		{
 			uint8 HeaderBytes[16] = {};
 			const int64 BytesToRead = FMath::Min<int64>(UE_ARRAY_COUNT(HeaderBytes), FileSize);
-			bCanReadBytes = BytesToRead > 0 ? FileHandle->Read(HeaderBytes, BytesToRead) : true;
+			CanReadBytes = BytesToRead > 0 ? FileHandle->Read(HeaderBytes, BytesToRead) : true;
 		}
 	}
 
 	Diagnostic = FString::Printf(
 		TEXT("path=%s exists=%d size=%lld canOpenRead=%d canReadBytes=%d"),
 		*FullPath,
-		bExists ? 1 : 0,
+		Exists ? 1 : 0,
 		FileSize,
-		bCanOpenRead ? 1 : 0,
-		bCanReadBytes ? 1 : 0);
+		CanOpenRead ? 1 : 0,
+		CanReadBytes ? 1 : 0);
 
 	UE_LOG(LogQuikkFileAccess, Warning, TEXT("File access test: %s"), *Diagnostic);
-	return bExists && bCanOpenRead;
+	return Exists && CanOpenRead;
 }
 
-bool UQuikkFileAccessLibrary::TestFileAccessInFolder(
+void UQuikkFileAccessLibrary::ResolveFilePath(
 	const FString& BaseFolderPath,
 	const FString& FileName,
 	FString& FullPath,
-	bool& bExists,
+	bool& Exists,
+	bool& Accessible,
 	int64& FileSize,
-	bool& bCanOpenRead,
-	bool& bCanReadBytes,
+	bool& CanOpenRead,
+	bool& CanReadBytes,
 	FString& Diagnostic)
 {
 	FullPath = BuildFilePathFromFolder(BaseFolderPath, FileName);
-	return TestFileAccess(FullPath, bExists, FileSize, bCanOpenRead, bCanReadBytes, Diagnostic);
+	Accessible = TestFileAccess(FullPath, Exists, FileSize, CanOpenRead, CanReadBytes, Diagnostic);
 }

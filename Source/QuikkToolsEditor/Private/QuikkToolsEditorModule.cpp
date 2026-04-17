@@ -5,6 +5,7 @@
 #include "HAL/PlatformProcess.h"
 #include "Misc/Paths.h"
 #include "Modules/ModuleManager.h"
+#include "Styling/AppStyle.h"
 #include "ToolMenus.h"
 #include "Widgets/Notifications/SNotificationList.h"
 
@@ -41,6 +42,7 @@ private:
 	void RegisterMenus()
 	{
 		FToolMenuOwnerScoped OwnerScoped(this);
+		const FUIAction ExportAction(FExecuteAction::CreateRaw(this, &FQuikkToolsEditorModule::RunExport));
 
 		UToolMenu* ToolsMenu = UToolMenus::Get()->ExtendMenu(TEXT("LevelEditor.MainMenu.Tools"));
 		FToolMenuSection& Section = ToolsMenu->FindOrAddSection(TEXT("QuikkTools"));
@@ -48,9 +50,21 @@ private:
 			TEXT("QuikkTools.ExportCurrentProjectLog"),
 			FText::FromString(TEXT("Export Current Project Log")),
 			FText::FromString(TEXT("Copy Saved/Logs/<Project>.log into the project's Exports folder.")),
-			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateRaw(this, &FQuikkToolsEditorModule::RunExport))
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), TEXT("Icons.Save")),
+			ExportAction
 		);
+
+		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu(TEXT("LevelEditor.LevelEditorToolBar.SettingsToolbar"));
+		FToolMenuSection& ToolbarSection = ToolbarMenu->FindOrAddSection(TEXT("QuikkTools"));
+		FToolMenuEntry ToolbarEntry = FToolMenuEntry::InitToolBarButton(
+			TEXT("QuikkTools.ExportCurrentProjectLog"),
+			ExportAction,
+			FText::FromString(TEXT("Export Log")),
+			FText::FromString(TEXT("Copy the current project log into the project's Exports folder.")),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), TEXT("Icons.Save"))
+		);
+		ToolbarEntry.StyleNameOverride = TEXT("CalloutToolbar");
+		ToolbarSection.AddEntry(ToolbarEntry);
 	}
 
 	void RunExport()
