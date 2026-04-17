@@ -39,13 +39,8 @@ public:
 	}
 
 private:
-	void RegisterMenus()
+	void AddExportLogMenuEntry(FToolMenuSection& Section, const FToolUIActionChoice& ExportAction) const
 	{
-		FToolMenuOwnerScoped OwnerScoped(this);
-		const FUIAction ExportAction(FExecuteAction::CreateRaw(this, &FQuikkToolsEditorModule::RunExport));
-
-		UToolMenu* ToolsMenu = UToolMenus::Get()->ExtendMenu(TEXT("LevelEditor.MainMenu.Tools"));
-		FToolMenuSection& Section = ToolsMenu->FindOrAddSection(TEXT("QuikkTools"));
 		Section.AddMenuEntry(
 			TEXT("QuikkTools.ExportCurrentProjectLog"),
 			FText::FromString(TEXT("Export Current Project Log")),
@@ -53,15 +48,40 @@ private:
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), TEXT("Icons.Save")),
 			ExportAction
 		);
+	}
+
+	void BuildToolbarDropdownMenu(UToolMenu* InMenu)
+	{
+		if (InMenu->FindEntry(TEXT("QuikkTools.ExportCurrentProjectLog")) != nullptr)
+		{
+			return;
+		}
+
+		const FToolUIActionChoice ExportAction(FExecuteAction::CreateRaw(this, &FQuikkToolsEditorModule::RunExport));
+
+		FToolMenuSection& ToolsSection = InMenu->FindOrAddSection(TEXT("QuikkToolsAvailable"));
+		ToolsSection.Label = FText::FromString(TEXT("Available Tools"));
+		AddExportLogMenuEntry(ToolsSection, ExportAction);
+	}
+
+	void RegisterMenus()
+	{
+		FToolMenuOwnerScoped OwnerScoped(this);
+		const FToolUIActionChoice ExportAction(FExecuteAction::CreateRaw(this, &FQuikkToolsEditorModule::RunExport));
+
+		UToolMenu* ToolsMenu = UToolMenus::Get()->ExtendMenu(TEXT("LevelEditor.MainMenu.Tools"));
+		FToolMenuSection& Section = ToolsMenu->FindOrAddSection(TEXT("QuikkTools"));
+		AddExportLogMenuEntry(Section, ExportAction);
 
 		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu(TEXT("LevelEditor.LevelEditorToolBar"));
 		FToolMenuSection& ToolbarSection = ToolbarMenu->FindOrAddSection(TEXT("QuikkTools"));
 		ToolbarSection.InsertPosition = FToolMenuInsert(TEXT("Play"), EToolMenuInsertType::After);
-		FToolMenuEntry ToolbarEntry = FToolMenuEntry::InitToolBarButton(
-			TEXT("QuikkTools.ExportCurrentProjectLog"),
-			ExportAction,
-			FText::FromString(TEXT("Export Project Log")),
-			FText::FromString(TEXT("Export the current project log into the project's Exports folder.")),
+		FToolMenuEntry ToolbarEntry = FToolMenuEntry::InitComboButton(
+			TEXT("QuikkTools.ToolbarMenu"),
+			FToolUIActionChoice(),
+			FNewToolMenuChoice(FNewToolMenuDelegate::CreateRaw(this, &FQuikkToolsEditorModule::BuildToolbarDropdownMenu)),
+			FText::FromString(TEXT("QuikkTools")),
+			FText::FromString(TEXT("Open the QuikkTools menu to access editor utilities.")),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), TEXT("Icons.Save"))
 		);
 		ToolbarEntry.StyleNameOverride = TEXT("CalloutToolbar");
