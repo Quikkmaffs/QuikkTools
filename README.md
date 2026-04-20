@@ -74,6 +74,10 @@ This exports the current project log into the host project's `Exports` folder us
 <ProjectName>__<BuildTargetName>__<BuildConfiguration>__<YYYYMMDD-HHMMSS>.log
 ```
 
+## Planned Work
+
+- [QuikkTools Blueprint Bridge Plan](</C:/UEProjects/InteractionSDK Sample/Unreal-InteractionSDK-Sample/Plugins/QuikkTools/docs/quikktools-blueprint-bridge-plan.md>)
+
 ## Design Principles
 
 - Keep reusable runtime helpers in `QuikkToolsRuntime`.
